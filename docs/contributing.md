@@ -20,7 +20,8 @@ All problems live in [`data/questions.json`](../data/questions.json). Each entry
   "constraints": ["2 <= nums.length <= 10^4"],
   "follow_up": "Can you come up with an algorithm that is less than O(n²) time complexity?",
   "slug": "two-sum",
-  "tags": ["Array", "Hash Table"]
+  "tags": ["Array", "Hash Table"],
+  "link": "https://leetcode.com/problems/two-sum/description/"
 }
 ```
 
@@ -29,7 +30,7 @@ All problems live in [`data/questions.json`](../data/questions.json). Each entry
 **To add a missing premium problem** — add a new entry following the schema above. Use the problem's LeetCode number as `id`. The app picks it up automatically on next server start (the in-memory cache resets).
 
 **Tips:**
-- `follow_up` and `explanation` inside examples are optional — omit them if not applicable
+- `follow_up`, `explanation` inside examples, and `link` are optional — omit if not applicable
 - `tags` should match LeetCode's topic labels (e.g. `"Array"`, `"Dynamic Programming"`, `"Binary Search"`)
 - Keep `difficulty` as `"Easy"`, `"Medium"`, or `"Hard"` exactly
 - Problems are sorted by `id` in the file — please keep that order
@@ -59,14 +60,25 @@ src/
 │   ├── search/            # /search route
 │   └── settings/          # /settings route
 ├── components/
-│   ├── LearnTab.tsx        # Main flashcard review UI
+│   ├── learn/              # Flashcard sub-components
+│   │   ├── FlashCard.tsx   # 3D flip card (front + back)
+│   │   ├── SolutionPanel.tsx # Sliding code editor panel
+│   │   ├── AnswerButtons.tsx # Know it / Don't know buttons
+│   │   ├── SkipMenu.tsx    # Skip popover
+│   │   ├── ProblemModal.tsx # Full problem detail modal
+│   │   ├── InfoDrawer.tsx  # "How Learning Works" drawer
+│   │   ├── GlobalQueueDrawer.tsx # Global queue drawer
+│   │   └── SessionDoneScreen.tsx # Session complete screen
+│   ├── LearnTab.tsx        # Learn page coordinator (state + logic)
 │   ├── Nav.tsx             # Bottom navigation bar
 │   ├── PersistentLearn.tsx # Keeps LearnTab mounted across routes
-│   └── QueueDrawer.tsx     # Upcoming cards drawer
+│   └── QueueDrawer.tsx     # Local batch queue drawer
 └── lib/
-    ├── scheduler.ts        # SM-2 spaced repetition algorithm ← start here for SR changes
-    ├── queue.ts            # Card queue priority logic
+    ├── scheduler.ts        # SM-2 algorithm, isDue ← start here for SR changes
+    ├── queue.ts            # buildQueue — global queue priority ordering
     ├── storage.ts          # Client-side fetch + in-memory cache
     ├── server-storage.ts   # Server-side file read/write
-    └── types.ts            # All TypeScript types
+    ├── types.ts            # All TypeScript types
+    ├── useTimer.ts         # Pause/resume timer hook
+    └── useDebounce.ts      # Debounce hook for autosave
 ```

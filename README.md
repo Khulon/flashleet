@@ -23,8 +23,8 @@ Spaced repetition flashcards for LeetCode — so you actually remember the patte
 ## Getting started
 
 ```bash
-git clone https://github.com/your-username/flashleet.git
-cd flashleet
+git clone https://github.com/Khulon/FlashLeet.git
+cd FlashLeet
 npm install
 npm run dev
 ```
@@ -64,11 +64,6 @@ fly deploy
 
 Your app will be live at `https://your-app-name.fly.dev`. Progress (card states, settings) persists in the volume across deploys.
 
-### Vercel ⚠️
-
-Won't work for real use — Vercel's serverless functions can't write to the filesystem, so your progress won't save.
-
----
 
 ## Questions dataset
 

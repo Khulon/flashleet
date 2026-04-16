@@ -54,6 +54,57 @@ All four are adjustable in Settings → Spaced Repetition:
 | **Easy Bonus** | 1.3× | Extra multiplier on top of a normal interval when you answer in under 30 seconds. |
 | **Lapse Interval** | 1 hour | How soon a failed card reappears. Options: 10 min, 30 min, 1 hr, 4 hrs, 1 day. |
 
-## Source
+---
 
-The algorithm lives in [`src/lib/scheduler.ts`](../src/lib/scheduler.ts).
+## Queue system
+
+### Global queue vs local batch
+
+There are two distinct queues:
+
+**Global queue** — your entire card library sorted by priority. This is the source of truth. Order:
+1. **Injected** — cards you pinned from Search (unseen or due only; see below)
+2. **Due** — cards whose review interval has expired, oldest first
+3. **New** — never-seen cards, in problem-ID order
+4. **Upcoming** — not yet due, soonest expiring first
+
+Within each bucket, cards seen in your last 5 reviews are pushed to the back to avoid back-to-back repeats.
+
+**Local batch** — a frozen snapshot of the top N cards from the global queue (N = your session size). This is what you actually review. It does not change mid-session even if new cards become due while you're studying.
+
+### Session flow
+
+```
+Global queue  →  startBatch (takes top N)  →  Local batch
+                                                    ↓
+                                              Answer cards
+                                                    ↓
+                                           Session done screen
+                                                    ↓
+                                    Continue → startBatch again
+```
+
+The local batch is **persisted to disk** (`batchIds` + `batchIndex` in `learn-session.json`). If you refresh mid-session, you resume exactly where you left off — the same cards in the same order.
+
+### Injecting cards from Search
+
+Clicking **+ Queue** on any problem in the Search page appends its ID to `injectedQuestionIds` in the session file. These IDs are **separate from the local batch** — they wait in the global queue until the current batch finishes.
+
+When `startBatch` runs next (on Continue or fresh load with no saved batch):
+1. Injected IDs that are **unseen or due** are pulled to the front of the new batch, in the order they were added.
+2. Remaining slots are filled from the natural priority order.
+3. Consumed IDs are removed from `injectedQuestionIds`. IDs that didn't fit the session size stay for the next batch.
+4. Stale injections (cards that were already answered and aren't due yet) are silently cleaned up — they fall into the upcoming bucket instead of being force-injected.
+
+### Recent cards
+
+The session tracks the last 10 answered card IDs in `recentQuestionIds`. `buildQueue` uses the most recent 5 to deprioritise cards you just saw, pushing them to the back of their bucket. This prevents the same card from appearing twice in a row across session boundaries.
+
+### Source files
+
+| File | Purpose |
+|---|---|
+| [`src/lib/queue.ts`](../src/lib/queue.ts) | `buildQueue` — deterministic priority ordering |
+| [`src/lib/scheduler.ts`](../src/lib/scheduler.ts) | SM-2 interval calculation, `isDue` |
+| [`src/components/LearnTab.tsx`](../src/components/LearnTab.tsx) | `startBatch`, `advanceInBatch`, session persistence |
+| [`src/app/api/session/route.ts`](../src/app/api/session/route.ts) | Session read/write API |
