@@ -31,6 +31,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Claude Code local config
+.claude/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
